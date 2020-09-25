@@ -1,0 +1,6 @@
+absl-py
+numpy==1.18.2
+scikit-learn
+tensorflow==1.15
+keras==2.2.4
+pandas
