@@ -14,5 +14,7 @@ doi={10.1109/ICMLA51294.2020.00141}}
 
 # References 
 [`DEAL: Deep Evidential Active Learning for Image Classification`](https://ieeexplore.ieee.org/document/9356322) (Proceedings ICMLA 2020)
+
 or
+
 [`DEAL: Deep Evidential Active Learning for Image Classification`](https://arxiv.org/abs/2007.11344) (arXiv)
