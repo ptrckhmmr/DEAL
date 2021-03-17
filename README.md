@@ -1,6 +1,6 @@
 # DEAL: Deep Evidential Active Learning for Image Classification
 
-Tensorflow implementation of the paper "DEAL: Deep Evidential Active Learning for Image Classification" by Patrick Hemmer, Niklas Kühl and Jakob Schöffer. Accepted for publication at ICMLA 2020. If you find this repository usefull please cite:
+Tensorflow implementation of the paper "DEAL: Deep Evidential Active Learning for Image Classification" by Patrick Hemmer, Niklas Kühl and Jakob Schöffer. Accepted for publication at ICMLA 2020. If you find this repository useful please cite:
 
 @INPROCEEDINGS{9356322,  
 author={P. {Hemmer} and N. {Kühl} and J. {Schöffer}},  
@@ -13,8 +13,4 @@ pages={865-870},
 doi={10.1109/ICMLA51294.2020.00141}}
 
 # References 
-[`DEAL: Deep Evidential Active Learning for Image Classification`](https://ieeexplore.ieee.org/document/9356322) (Proceedings ICMLA 2020)
-
-or
-
-[`DEAL: Deep Evidential Active Learning for Image Classification`](https://arxiv.org/abs/2007.11344) (arXiv)
+[`Proceedings ICMLA 2020`](https://ieeexplore.ieee.org/document/9356322) or [`arXiv`](https://arxiv.org/abs/2007.11344)
