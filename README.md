@@ -13,4 +13,6 @@ pages={865-870},
 doi={10.1109/ICMLA51294.2020.00141}}
 
 # References 
-[`Proceedings ICMLA 2020`](https://ieeexplore.ieee.org/document/9356322) or [`arXiv`](https://arxiv.org/abs/2007.11344)
+[`Proceedings ICMLA 2020`](https://ieeexplore.ieee.org/document/9356322)
+
+[`arXiv`](https://arxiv.org/abs/2007.11344)
