@@ -26,6 +26,7 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
+import pickle
 from scipy.stats import mode
 from sampling_methods.sampling_def import SamplingMethod
 
@@ -52,7 +53,15 @@ class VarRatio(SamplingMethod):
       indices of points selected to add using variation ratio active learner
     """
 
-    X_Pool_Dropout = self.X
+    with open('./trained_models/All_Dropout_Classes_dataset', 'rb') as fp:
+      All_Dropout_Classes_dataset = pickle.load(fp)
+
+    if All_Dropout_Classes_dataset == 'mnist_keras':
+      X_Pool_Dropout = self.X
+    if All_Dropout_Classes_dataset == 'cifar10_keras':
+      X_Pool_Dropout = self.X
+    if All_Dropout_Classes_dataset == 'svhn':
+      X_Pool_Dropout = self.X[:87000]
 
 
     All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout.shape[0], 1))

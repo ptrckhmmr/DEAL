@@ -1,29 +1,3 @@
-# Copyright 2020 DeepLearningResearch
-#
-#MIT License
-#Copyright (c) 2018 Junho Kim (1993.01.12)
-
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
-
-#The above copyright notice and this permission notice shall be included in all
-#copies or substantial portions of the Software.
-
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#SOFTWARE.
-#
-# This file has been modified by DeepLearningResearch for the development of DEAL.
-
-
 import time
 from utils.resnet_ops import *
 from utils.resnet_utils import *
@@ -38,7 +12,7 @@ class ResNet_Softmax(object):
 
         if self.dataset_name == 'cifar10_keras' :
             #self.train_x, self.train_y, self.test_x, self.test_y = load_cifar10()
-            self.img_size = 32
+            self.img_size = [32, 32]
             self.c_dim = 3
             self.label_dim = 10
 
@@ -50,28 +24,17 @@ class ResNet_Softmax(object):
 
         if self.dataset_name == 'mnist_keras' :
             #self.train_x, self.train_y, self.test_x, self.test_y = load_mnist()
-            self.img_size = 28
+            self.img_size = [28, 28]
             self.c_dim = 1
             self.label_dim = 10
 
-        if self.dataset_name == 'fashion-mnist' :
-            #self.train_x, self.train_y, self.test_x, self.test_y = load_fashion()
-            self.img_size = 28
-            self.c_dim = 1
-            self.label_dim = 10
-
-        if self.dataset_name == 'tiny' :
-            #self.train_x, self.train_y, self.test_x, self.test_y = load_tiny()
-            self.img_size = 64
-            self.c_dim = 3
-            self.label_dim = 200
         if self.dataset_name == 'svhn' :
             #self.train_x, self.train_y, self.test_x, self.test_y = load_tiny()
-            self.img_size = 32
+            self.img_size = [32,32]
             self.c_dim = 1
             self.label_dim = 10
         if self.dataset_name == 'medical':
-            self.img_size = 128
+            self.img_size = [128, 128]
             self.c_dim = 1
             self.label_dim = 2
 
@@ -145,9 +108,9 @@ class ResNet_Softmax(object):
             #x = fully_conneted(x, units=self.label_dim, scope='logit')
             #The following two lines are added
             x = flatten(x)
-            x, prob = Softmax_dense_layer(x, units=self.label_dim, scope='logit')
+            x = Softmax_dense_layer(x, units=self.label_dim, scope='logit')
 
-            return x, prob
+            return x
 
     ##################################################################################
     # Model
@@ -165,23 +128,22 @@ class ResNet_Softmax(object):
 
 
         """ Graph Input """
-        self.train_inputs = tf.placeholder(tf.float32, [self.batch_size, self.img_size, self.img_size, self.c_dim], name='train_inputs')
+        self.train_inputs = tf.placeholder(tf.float32, [self.batch_size, self.img_size[0], self.img_size[1], self.c_dim], name='train_inputs')
         self.train_labels = tf.placeholder(tf.float32, [self.batch_size, self.label_dim], name='train_labels')
 
-
-        self.val_inputs = tf.placeholder(tf.float32, [len(val_x), self.img_size, self.img_size, self.c_dim], name='val_inputs')
+        self.val_inputs = tf.placeholder(tf.float32, [len(val_x), self.img_size[0], self.img_size[1], self.c_dim], name='val_inputs')
         self.val_labels = tf.placeholder(tf.float32, [len(val_y), self.label_dim], name='val_labels')
 
-        self.test_inputs = tf.placeholder(tf.float32, [len(test_x), self.img_size, self.img_size, self.c_dim], name='test_inputs')
+        self.test_inputs = tf.placeholder(tf.float32, [len(test_x), self.img_size[0], self.img_size[1], self.c_dim], name='test_inputs')
         self.test_labels = tf.placeholder(tf.float32, [len(test_y), self.label_dim], name='test_labels')
 
 
         self.lr = tf.placeholder(tf.float32, name='learning_rate')
 
         """ Model """
-        self.train_logits, self.train_probs = self.network(self.train_inputs)
-        self.val_logits, self.val_probs = self.network(self.val_inputs, is_training=False, reuse=True)
-        self.test_logits, self.test_probs = self.network(self.test_inputs, is_training=False, reuse=True)
+        self.train_logits = self.network(self.train_inputs)
+        self.val_logits = self.network(self.val_inputs, is_training=False, reuse=True)
+        self.test_logits = self.network(self.test_inputs, is_training=False, reuse=True)
 
         self.train_loss, self.train_accuracy = classification_loss(logit=self.train_logits, label=self.train_labels)
         self.val_loss, self.val_accuracy = classification_loss(logit=self.val_logits, label=self.val_labels)
@@ -212,11 +174,15 @@ class ResNet_Softmax(object):
 
     def fit(self, train_x, train_y, val_x, val_y, FLAGS):
 
-
+        #val_x = val_x[:100]
+        #val_y = val_y[:100]
 
         # transform labels to categorial values
         self.FLAGS = FLAGS
         if FLAGS.dataset == 'cifar10_keras':
+            train_y = to_categorical(train_y, 10)
+            val_y = to_categorical(val_y, 10)
+        if FLAGS.dataset == 'mnist_keras':
             train_y = to_categorical(train_y, 10)
             val_y = to_categorical(val_y, 10)
         if FLAGS.dataset == 'cifar100_keras':
@@ -228,10 +194,6 @@ class ResNet_Softmax(object):
         if FLAGS.dataset == 'medical':
             train_y = to_categorical(train_y, 2)
             val_y = to_categorical(val_y, 2)
-        if self.FLAGS.dataset == 'medical':
-            pred = np.zeros(shape=(0, 2))
-        if FLAGS.dataset == 'medical':
-            test_y = to_categorical(test_y, 2)
 
         self.iteration = len(train_x) // self.batch_size
 
@@ -276,7 +238,7 @@ class ResNet_Softmax(object):
                 batch_x = train_x[idx*self.batch_size:(idx+1)*self.batch_size]
                 batch_y = train_y[idx*self.batch_size:(idx+1)*self.batch_size]
 
-                #batch_x = data_augmentation(batch_x, self.img_size, self.dataset_name)
+                batch_x = data_augmentation(batch_x, self.img_size, self.dataset_name)
 
                 train_feed_dict = {
                     self.train_inputs : batch_x,
@@ -322,37 +284,64 @@ class ResNet_Softmax(object):
 
         train_x = X
         train_x_length = train_x.shape[0]
-        print('TRAIN_X.SHAPE')
-        print(train_x.shape)
+        #print('TRAIN_X.SHAPE')
+        #print(train_x.shape)
 
         if self.FLAGS.dataset == 'cifar10_keras':
+            pred = np.zeros(shape=(0, 10))
+        if self.FLAGS.dataset == 'mnist_keras':
             pred = np.zeros(shape=(0, 10))
         if self.FLAGS.dataset == 'cifar100_keras':
             pred = np.zeros(shape=(0, 100))
         if self.FLAGS.dataset == 'svhn':
             pred = np.zeros(shape=(0, 10))
+        if self.FLAGS.dataset == 'medical':
+            pred = np.zeros(shape=(0, 2))
+
+        if self.FLAGS.dataset == 'cifar10_keras' or self.FLAGS.dataset == 'mnist_keras' or self.FLAGS.dataset == 'cifar100_keras' or self.FLAGS.dataset == 'svhn':
+            start=0
+            end=2000
+            for idx in range(0, int(train_x_length/2000)):
+                X_cache = train_x[start:end]
 
 
-        start=0
-        end=2000
-        for idx in range(0, int(train_x_length/2000)):
-            X_cache = train_x[start:end]
+                predict_feed_dict = {
+                    self.val_inputs: X_cache
+                }
+
+                prediction = self.sess.run(
+                    [self.val_logits], feed_dict=predict_feed_dict
+                )
+
+                p_pred = np.array(prediction)
+                p_pred = p_pred.reshape([p_pred.shape[1],p_pred.shape[2]])
+                pred = np.concatenate([pred, p_pred])
+
+                start += 2000
+                end += 2000
 
 
-            predict_feed_dict = {
-                self.val_inputs: X_cache
-            }
 
-            prediction = self.sess.run(
-                [self.val_probs], feed_dict=predict_feed_dict
-            )
+        if self.FLAGS.dataset == 'medical':
+            start = 0
+            end = 200
+            for idx in range(0, int(train_x_length / 200)):
+                X_cache = train_x[start:end]
 
-            p_pred = np.array(prediction)
-            p_pred = p_pred.reshape([p_pred.shape[1],p_pred.shape[2]])
-            pred = np.concatenate([pred, p_pred])
+                predict_feed_dict = {
+                    self.val_inputs: X_cache
+                }
 
-            start += 2000
-            end += 2000
+                prediction = self.sess.run(
+                    [self.val_logits], feed_dict=predict_feed_dict
+                )
+
+                p_pred = np.array(prediction)
+                p_pred = p_pred.reshape([p_pred.shape[1], p_pred.shape[2]])
+                pred = np.concatenate([pred, p_pred])
+
+                start += 200
+                end += 200
 
         return pred
 
@@ -391,10 +380,14 @@ class ResNet_Softmax(object):
         self.FLAGS = FLAGS
         if FLAGS.dataset == 'cifar10_keras':
             test_y = to_categorical(test_y, 10)
+        if FLAGS.dataset == 'mnist_keras':
+            test_y = to_categorical(test_y, 10)
         if FLAGS.dataset == 'cifar100_keras':
             test_y = to_categorical(test_y, 100)
         if FLAGS.dataset == 'svhn':
             test_y = to_categorical(test_y, 10)
+        if FLAGS.dataset == 'medical':
+            test_y = to_categorical(test_y, 2)
 
 
         tf.global_variables_initializer().run(session=self.sess)

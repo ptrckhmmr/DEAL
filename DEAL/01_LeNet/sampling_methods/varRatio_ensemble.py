@@ -57,10 +57,18 @@ class VarRatio_ensemble(SamplingMethod):
       indices of points selected to add using variation ratio active learner
     """
 
-    with open('./test_accuracy/All_Dropout_Classes', 'rb') as fp:
+    with open('./trained_models/All_Dropout_Classes', 'rb') as fp:
       All_Dropout_Classes = pickle.load(fp)
 
-    X_Pool_Dropout = self.X
+    with open('./trained_models/All_Dropout_Classes_dataset', 'rb') as fp:
+      All_Dropout_Classes_dataset = pickle.load(fp)
+
+    if All_Dropout_Classes_dataset == 'mnist_keras':
+      X_Pool_Dropout = self.X
+    if All_Dropout_Classes_dataset == 'cifar10_keras':
+      X_Pool_Dropout = self.X
+    if All_Dropout_Classes_dataset == 'svhn':
+      X_Pool_Dropout = self.X[:87000]
 
     Variation = np.zeros(shape=(X_Pool_Dropout.shape[0]))
 

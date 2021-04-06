@@ -52,6 +52,8 @@ class LeNet_Evidence(object):
     self.cifar_y = 3
     self.audi = 512
     self.audi_y = 3
+    self.svhn = 32
+    self.svhn_y = 1
 
     self.pixel = self.mnist
     self.channel = self.mnist_y
@@ -234,7 +236,7 @@ class LeNet_Evidence(object):
 
     cifar10_x_train = cifar10_x_train.reshape(cifar10_y_train.shape[0], self.pixel * self.pixel * self.channel)
     cifar10_y_train = self.create_y_mat(cifar10_y_train)
-    print('CIFAR')
+    print('SHAPE')
     print(cifar10_x_train.shape)
     print(cifar10_y_train.shape)
 

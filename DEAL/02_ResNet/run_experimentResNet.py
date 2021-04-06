@@ -52,17 +52,17 @@ from utils.resnet_utils import *
 
 # Flags to be defined:
 
-flags.DEFINE_string("dataset", "cifar10_keras", "Dataset name")
+flags.DEFINE_string("dataset", "mnist_keras", "Dataset name")
 flags.DEFINE_string("sampling_method", "marginEDL",
                     ("Name of sampling method to use, can be any defined in "
                      "AL_MAPPING in sampling_methods.constants"))
 flags.DEFINE_float(
-    "warmstart_size", 2000,  # CIFAR-10: 1./24 MNIST: 100# medical: 64 # !!!Data Split Umstellen
+    "warmstart_size", 100,  # CIFAR-10: 1./24 MNIST: 100# medical: 64 # !!!Data Split Umstellen
     ("Can be float or integer.  Float indicates percentage of training data "
      "to use in the initial warmstart model")
 )
 flags.DEFINE_float(
-    "batch_size", 2000, # CIAFAR-10: 1./24 MNIST: 100 # audi: 64 !!!Data Split Umstellen
+    "batch_size", 100, # CIAFAR-10: 1./24 MNIST: 100 # audi: 64 !!!Data Split Umstellen
     ("Can be float or integer.  Float indicates batch size as a percentage "
      "of training data size.")
 )
@@ -169,7 +169,16 @@ def generate_one_curve(X,
   mnist = [29./35, 1./35 , 1./7]  #Train: 58000, Val: 2000, Test: 10000
   svhn = [0.87914070, 0.02014322, 0.10071607]
   medical = [0.48388, 0.06452, 0.4516]
-  data_splits = cifar10
+
+  if FLAGS.dataset == "mnist_keras":
+      data_splits = mnist
+  if FLAGS.dataset == "cifar10_keras":
+      data_splits = cifar10
+  if FLAGS.dataset == "svhn":
+      data_splits = svhn
+  if FLAGS.dataset == "medical":
+      data_splits = medical
+
 
 
   if max_points is None:
@@ -291,6 +300,9 @@ def generate_one_curve(X,
 
     with open('./test_accuracy/ResNet_Softmax_varRatio_with_data_augment_lr0.0005_batch64_10' + str(seed) + '.json', 'w') as f:
         json.dump(str(accuracy), f)
+
+    with open('./trained_models/All_Dropout_Classes_dataset', 'wb') as fp:
+        pickle.dump(FLAGS.dataset, fp)
 
 
     n_sample = min(batch_size, train_size - len(selected_inds))

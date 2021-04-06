@@ -30,6 +30,7 @@ from __future__ import print_function
 import os
 import pickle
 import sys
+import time
 from time import gmtime
 from time import strftime
 
@@ -51,23 +52,23 @@ from utils import utils
 
 # Flags to be defined:
 
-flags.DEFINE_string("dataset", "cifar10_keras", "Dataset name")
+flags.DEFINE_string("dataset", "mnist_keras", "Dataset name")
 flags.DEFINE_string("sampling_method", "varRatio_ensemble",
                     ("Name of sampling method to use, can be any defined in "
                      "AL_MAPPING in sampling_methods.constants"))
 flags.DEFINE_float(
-    "warmstart_size", 1./24,  # CIFAR-10: 1./24 MNIST: 100  !!!Data Split Umstellen
+    "warmstart_size", 100,  # CIFAR-10: 1./24 MNIST: 0.00173 # ALL: 49999./50000 !!!Data Split Umstellen
     ("Can be float or integer.  Float indicates percentage of training data "
      "to use in the initial warmstart model")
 )
 flags.DEFINE_float(
-    "batch_size", 1./24, # CIAFAR-10: 1./24 MNIST: 100  !!!Data Split Umstellen
+    "batch_size", 100, # CIAFAR-10: 1./24 MNIST: 0.00173 # ALL: 1./50000 !!!Data Split Umstellen
     ("Can be float or integer.  Float indicates batch size as a percentage "
      "of training data size.")
 )
 flags.DEFINE_integer("trials", 5,
                      "Number of curves to create using different seeds")
-flags.DEFINE_integer("seed", 1, "Seed to use for rng and random state")
+flags.DEFINE_integer("seed", 20, "Seed to use for rng and random state")
 
 flags.DEFINE_string("confusions", "0.", "Percentage of labels to randomize")
 flags.DEFINE_string("active_sampling_percentage", "1.0",
@@ -88,7 +89,7 @@ flags.DEFINE_string("data_dir", "../data/",  #"utils/tmp/data"
 flags.DEFINE_string("max_dataset_size", "0",
                     ("maximum number of datapoints to include in data "
                      "zero indicates no limit"))
-flags.DEFINE_float("train_horizon", "0.625", #CIFAR-10: 0.4166666 MNIST: 0.0344 # ALL: 1 !!! DataSplit umstellen
+flags.DEFINE_float("train_horizon", "0.13", #CIFAR-10: 0.4166666 MNIST: 0.0344 # ALL: 1 !!! DataSplit umstellen
                    "how far to extend learning curve as a percent of train")
 flags.DEFINE_string("do_save", "True",
                     "whether to save log and results")
@@ -167,8 +168,17 @@ def generate_one_curve(X,
 
   cifar10 = [8./10, 1./30, 1./15] #Train: 48000, Val: 2000, Test: 10000
   mnist = [29./35, 1./35 , 1./7]  #Train: 58000, Val: 2000, Test: 10000
+  svhn = [0.87914070, 0.02014322, 0.10071607]
   medical = [0.48388, 0.06452, 0.4516]
-  data_splits = cifar10
+
+  if FLAGS.dataset == "mnist_keras":
+      data_splits = mnist
+  if FLAGS.dataset == "cifar10_keras":
+      data_splits = cifar10
+  if FLAGS.dataset == "svhn":
+      data_splits = svhn
+  if FLAGS.dataset == "medical":
+      data_splits = medical
 
 
   if max_points is None:
@@ -246,6 +256,7 @@ def generate_one_curve(X,
   results = {}
   data_sizes = []
   accuracy = []
+  elapsed_time = []
   selected_inds = list(range(seed_batch))
 
   # If select model is None, use score_model
@@ -283,9 +294,20 @@ def generate_one_curve(X,
     mean_acc = []
 
     X_Pool_Dropout = X_train
-    All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout.shape[0], 1)) # Für AUDI -16 hinzugefügt
-    print('Use trained model for test time dropout')
 
+
+    if FLAGS.dataset == "mnist_keras":
+        All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout.shape[0], 1))
+    if FLAGS.dataset == "cifar10_keras":
+        All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout.shape[0], 1))
+    if FLAGS.dataset == "svhn":
+        All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout[:86000].shape[0], 1))
+    if FLAGS.dataset == "medical":
+        All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout[:1400].shape[0], 1))
+
+
+
+    start = time.time()
     for i in range(n_ensembles):
         print('N_ENSEMBLE: '+ str(i+1))
 
@@ -296,11 +318,11 @@ def generate_one_curve(X,
 
 
         # Predictions at Test Time
-        try:
-            pred = score_model.predict(X_Pool_Dropout)
-        except:
+        #try:
+        pred = score_model.predict(X_Pool_Dropout)
+        #except:
             #pred = model.predict_proba(self.X)
-            print('Ein Fehler ist bei der Vorhersage aufgetreten')
+        #    print('Ein Fehler ist bei der Vorhersage aufgetreten')
 
 
         dropout_classes = np.argmax(pred, axis=1)
@@ -320,13 +342,16 @@ def generate_one_curve(X,
     with open('./trained_models/All_Dropout_Classes', 'wb') as fp:
         pickle.dump(All_Dropout_Classes, fp)
 
+    with open('./trained_models/All_Dropout_Classes_dataset', 'wb') as fp:
+        pickle.dump(FLAGS.dataset, fp)
+
 
 
     # Calculate mean for each model
     accuracy.append(np.mean(mean_acc))
     print("Sampler: %s, Accuracy: %.2f%%" % (sampler.name, accuracy[-1]*100))
 
-    with open('./test_accuracy/ResNet_ensemble_varRatio_lr0.0005_batch64' + str(seed) + '.json', 'w') as f:
+    with open('./test_accuracy/ResNet_Extended_ensemble_varRatio_svhn_lr0.0005_batch64_1000_1' + str(seed) + '.json', 'w') as f:
         json.dump(str(accuracy), f)
 
 
@@ -341,12 +366,22 @@ def generate_one_curve(X,
         "y_test": y_val,
         "y": y_train
     }
+
+    end = time.time()
+    execution_time = end - start
+    print('Elapsed time: ', execution_time)
+    elapsed_time.append(execution_time)
+    with open('./test_accuracy/Elapsed_time_Extended_ensemble_varRatio_svhn_lr0.0005_batch64_1000_1' + str(seed) + '.json', 'w') as f:
+        json.dump(str(elapsed_time), f)
+
     new_batch = select_batch(sampler, uniform_sampler, active_p, n_sample,
                              selected_inds, **select_batch_inputs)
     selected_inds.extend(new_batch)
     print('Requested: %d, Selected: %d' % (n_sample, len(new_batch)))
     assert len(new_batch) == n_sample
     assert len(list(set(selected_inds))) == len(selected_inds)
+
+
 
   # Check that the returned indice are correct and will allow mapping to
   # training set from original data
@@ -456,5 +491,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
-  os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+  os.environ["CUDA_VISIBLE_DEVICES"] = "0"
   app.run(main)

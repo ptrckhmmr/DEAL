@@ -66,7 +66,7 @@ flags.DEFINE_float(
     ("Can be float or integer.  Float indicates batch size as a percentage "
      "of training data size.")
 )
-flags.DEFINE_integer("trials", 1,
+flags.DEFINE_integer("trials", 10,
                      "Number of curves to create using different seeds")
 flags.DEFINE_integer("seed", 1, "Seed to use for rng and random state")
 flags.DEFINE_string("confusions", "0.", "Percentage of labels to randomize")
@@ -166,8 +166,15 @@ def generate_one_curve(X,
   # Specify the train, validation, and test split
 
   cifar10 = [8./10, 1./30, 1./15] #Train: 48000, Val: 2000, Test: 10000
+  svhn = [0.87914070, 0.02014322, 0.10071607]
   mnist = [29./35, 1./35 , 1./7]  #Train: 58000, Val: 2000, Test: 10000
-  data_splits = mnist
+
+  if FLAGS.dataset == "mnist_keras":
+      data_splits = mnist
+  if FLAGS.dataset == "cifar10_keras":
+      data_splits = cifar10
+  if FLAGS.dataset == "svhn":
+      data_splits = svhn
 
 
   if max_points is None:
@@ -257,8 +264,16 @@ def generate_one_curve(X,
     mean_acc = []
 
     X_Pool_Dropout = X_train
-    All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout.shape[0], 1))
+    if FLAGS.dataset == "mnist_keras":
+        All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout.shape[0], 1))
+    if FLAGS.dataset == "cifar10_keras":
+        All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout.shape[0], 1))
+    if FLAGS.dataset == "svhn":
+        All_Dropout_Classes = np.zeros(shape=(X_Pool_Dropout[:87000].shape[0], 1))
+
+
     print('Use trained model for test time dropout')
+    print('AllDropout Classes', All_Dropout_Classes.shape)
 
     for i in range(n_ensembles):
         print('N_ENSEMBLE: '+ str(i+1))
@@ -279,7 +294,7 @@ def generate_one_curve(X,
 
 
         dropout_classes = np.argmax(pred, axis=1)
-        print(dropout_classes.shape)
+        print('dropoutclasses', dropout_classes.shape)
         dropout_classes = np.array([dropout_classes]).T
 
         All_Dropout_Classes = np.append(All_Dropout_Classes, dropout_classes, axis=1)
@@ -290,8 +305,11 @@ def generate_one_curve(X,
         mean_acc.append(acc)
 
 
-    with open('./test_accuracy/All_Dropout_Classes', 'wb') as fp:
+    with open('./trained_models/All_Dropout_Classes', 'wb') as fp:
         pickle.dump(All_Dropout_Classes, fp)
+
+    with open('./trained_models/All_Dropout_Classes_dataset', 'wb') as fp:
+        pickle.dump(FLAGS.dataset, fp)
 
 
 
@@ -299,7 +317,8 @@ def generate_one_curve(X,
     accuracy.append(np.mean(mean_acc))
     print("Sampler: %s, Accuracy: %.2f%%" % (sampler.name, accuracy[-1]*100))
 
-
+    with open('./trained_models/accuracyLeNet_Softmax_Ensemble_batchsize32_1000_lr00005_' + str(seed) + '.json', 'w') as f:
+        json.dump(str(accuracy), f)
 
 
     n_sample = min(batch_size, train_size - len(selected_inds))
@@ -402,11 +421,10 @@ def main(argv):
         all_results[key] = results
 
         print(accuracy)
-        with open('./test_accuracy/accuracyVGGNet_' + str(seed) + '.json', 'w') as f:
-            json.dump(str(accuracy), f)
+
 
         sampling_time_measurement.append(np.mean(sampling_time_measurement))
-        with open('./test_accuracy/time_measurement.json', 'w') as f:
+        with open('./trained_models/time_measurement.json', 'w') as f:
             json.dump(str(sampling_time_measurement), f)
 
 
@@ -437,5 +455,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
-  os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+  os.environ["CUDA_VISIBLE_DEVICES"] = "0"
   app.run(main)

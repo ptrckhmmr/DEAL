@@ -169,7 +169,14 @@ def generate_one_curve(X,
   cifar10 = [8./10, 1./30, 1./15]  #Train: 48000, Val: 2000, Test: 10000
   mnist = [29./35, 1./35 , 1./7]  #Train: 58000, Val: 2000, Test: 10000
   audi = [0.744, 0.0732, 0.177]
-  data_splits = cifar10
+  svhn = [0.87914070, 0.02014322, 0.10071607]
+
+  if FLAGS.dataset == "mnist_keras":
+      data_splits = mnist
+  if FLAGS.dataset == "cifar10_keras":
+      data_splits = cifar10
+  if FLAGS.dataset == "svhn":
+      data_splits = svhn
 
 
   if max_points is None:
@@ -260,6 +267,9 @@ def generate_one_curve(X,
     acc = score_model.score(X_test, y_test)
     accuracy.append(acc)
     print("Sampler: %s, Accuracy: %.2f%%" % (sampler.name, accuracy[-1]*100))
+
+    with open('./trained_models/All_Dropout_Classes_dataset', 'wb') as fp:
+        pickle.dump(FLAGS.dataset, fp)
 
     n_sample = min(batch_size, train_size - len(selected_inds))
     select_batch_inputs = {
