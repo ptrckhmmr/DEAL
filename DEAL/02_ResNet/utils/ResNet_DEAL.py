@@ -11,26 +11,22 @@ class ResNet_DEAL(object):
         self.dataset_name = args.dataset
 
 
-        if self.dataset_name == 'cifar10_keras' :
-            #self.train_x, self.train_y, self.test_x, self.test_y = load_cifar10()
+        if self.dataset_name == 'cifar10_keras':
             self.img_size = [32, 32]
             self.c_dim = 3
             self.label_dim = 10
 
-        if self.dataset_name == 'cifar100_keras' :
-            #self.train_x, self.train_y, self.test_x, self.test_y = load_cifar100()
+        if self.dataset_name == 'cifar100_keras':
             self.img_size = [32, 32]
             self.c_dim = 3
             self.label_dim = 100
 
-        if self.dataset_name == 'mnist_keras' :
-            #self.train_x, self.train_y, self.test_x, self.test_y = load_mnist()
+        if self.dataset_name == 'mnist_keras':
             self.img_size = [28, 28]
             self.c_dim = 1
             self.label_dim = 10
 
-        if self.dataset_name == 'svhn' :
-            #self.train_x, self.train_y, self.test_x, self.test_y = load_tiny()
+        if self.dataset_name == 'svhn':
             self.img_size = [32,32]
             self.c_dim = 1
             self.label_dim = 10
@@ -333,8 +329,6 @@ class ResNet_DEAL(object):
 
         train_x = X
         train_x_length = train_x.shape[0]
-        #print('TRAIN_X.SHAPE')
-        #print(train_x.shape)
 
         if self.FLAGS.dataset == 'cifar10_keras':
             pred = np.zeros(shape=(0, 10))

@@ -57,8 +57,7 @@ from absl import flags
 from tensorflow import gfile
 
 # Flags to specify save directory and data set to be downloaded.
-# Possbile options mnist_keras and cifar10_keras
-# Audi data set cannot be downloaded
+
 
 flags.DEFINE_string('save_dir', '../../data/',   # './tmp/data'
                     'Where to save outputs')

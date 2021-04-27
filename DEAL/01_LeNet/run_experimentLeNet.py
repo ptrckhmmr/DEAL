@@ -168,7 +168,7 @@ def generate_one_curve(X,
 
   cifar10 = [8./10, 1./30, 1./15]  #Train: 48000, Val: 2000, Test: 10000
   mnist = [29./35, 1./35 , 1./7]  #Train: 58000, Val: 2000, Test: 10000
-  audi = [0.744, 0.0732, 0.177]
+  #audi = [0.744, 0.0732, 0.177]
   svhn = [0.87914070, 0.02014322, 0.10071607]
 
   if FLAGS.dataset == "mnist_keras":

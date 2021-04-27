@@ -135,8 +135,7 @@ def get_mldata(data_dir, name):
       image_ind = i
       X.append(rgb2gray(X_list_train_val[i]))
     X = np.array(X)
-    print('Shape von audi')
-    print(X.shape)
+
     X_train_val = X
     X_train_val = X_train_val/255
 
@@ -294,12 +293,7 @@ def flip_label(y, percent_random):
 
 
 def get_model(method, seed=13):
-  """Registers the LeNet DEAL,
-  LeNet Softmax,
-  VGGNet-custom DEAL,
-  VGGNet-custom softmax,
-  VGGNet-custom DEAL for the Audi data set and
-  VGGNet-custom softmax for the Audi data set,
+  """Registers the LeNet DEAL and LeNet Softmax.
   """
 
   if method == "LeNet_DEAL":
